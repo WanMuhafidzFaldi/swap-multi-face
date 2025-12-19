@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  face-swap-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: face-swap-api
+    ports:
+      - "9105:8000"
+    volumes:
+      # Persistent volumes for outputs and uploads
+      - ~/docker_data/swap-multi-face/outputs:/app/outputs
+      - ~/docker_data/swap-multi-face/uploads:/app/uploads
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
